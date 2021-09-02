@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             override fun run() {
                 setTime(++currentSeconds)
                 Thread.sleep(ONE_SECOND)
-                handler.postDelayed(this)
+                handler.postDelayed(this, ONE_SECOND)
             }
 
         }
