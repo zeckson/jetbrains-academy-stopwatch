@@ -82,8 +82,8 @@ class MainActivity : AppCompatActivity() {
         tickTimer = object : Runnable {
             override fun run() {
                 if (thread == Thread.currentThread()) {
-                    setTime(currentSeconds.incrementAndGet())
                     Thread.sleep(ONE_SECOND)
+                    setTime(currentSeconds.incrementAndGet())
                     this.run()
                 } else {
                     setTime(0)
@@ -105,8 +105,8 @@ class MainActivity : AppCompatActivity() {
                 thread = null
                 progressBar.visibility = View.INVISIBLE
                 settingsButton.isEnabled = true
+                setTime(0)
             }
-
         }
     }
 
