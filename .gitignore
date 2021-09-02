@@ -1,0 +1,11 @@
+# Caches
+.idea
+.gradle
+
+# Build files
+build
+
+# External files
+*.yaml
+*.patch
+*.html
