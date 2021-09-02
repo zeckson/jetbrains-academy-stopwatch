@@ -22,10 +22,10 @@ val COLORS = arrayOf(Color.RED, Color.GREEN, Color.BLUE)
 class MainActivity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
-    private var currentSeconds: AtomicInteger = AtomicInteger(0)
+    private var currentSeconds = AtomicInteger(0)
     private var thread: Thread? = null
     private var tickTimer: Runnable? = null
-    private var upperLimit = 0
+    private var upperLimit = AtomicInteger(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,12 +46,12 @@ class MainActivity : AppCompatActivity() {
                     .setView(contentView)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         val editText = contentView.findViewById<EditText>(R.id.upperLimitEditText)
-                        upperLimit = try {
+                        upperLimit.set(try {
                             Integer.parseInt(editText.text.toString())
                         } catch (e: NumberFormatException) {
                             0
                         }
-                    }
+                        )                    }
                     .setNegativeButton(android.R.string.cancel) { dialog, _ ->
                         dialog.dismiss()
                     }
@@ -66,8 +66,7 @@ class MainActivity : AppCompatActivity() {
             val seconds = time % 60
             val color = COLORS[seconds % COLORS.size]
 
-
-            val textColor = if (upperLimit in 1 until seconds) {
+            val textColor = if (upperLimit.get() in 1 until seconds) {
                 Color.RED
             } else {
                 Color.BLACK
