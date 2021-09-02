@@ -13,6 +13,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.hyperskill.stopwatch.StringUtil.time
+import java.util.concurrent.atomic.AtomicInteger
 
 const val ONE_SECOND: Long = 1000
 
@@ -21,8 +22,8 @@ val COLORS = arrayOf(Color.RED, Color.GREEN, Color.BLUE)
 class MainActivity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
-    private var currentSeconds = 0
-    private var running = false
+    private var currentSeconds: AtomicInteger = AtomicInteger(0)
+    private var thread: Thread? = null
     private var tickTimer: Runnable? = null
     private var upperLimit = 0
 
@@ -60,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         textView.text = getString(R.string.counter, time(0), time(0))
 
         val setTime = { time: Int ->
-            currentSeconds = time
+            currentSeconds.set(time)
             val minutes = time / 60
             val seconds = time % 60
             val color = COLORS[seconds % COLORS.size]
@@ -73,44 +74,44 @@ class MainActivity : AppCompatActivity() {
             }
 
             handler.post {
-                textView.setTextColor(textColor)
-            }
-
-            handler.post {
                 textView.text = getString(R.string.counter, time(minutes), time(seconds))
-
+                textView.setTextColor(textColor)
                 progressBar.indeterminateTintList = ColorStateList.valueOf(color)
             }
         }
-
         tickTimer = object : Runnable {
             override fun run() {
-                setTime(++currentSeconds)
-                Thread.sleep(ONE_SECOND)
-                handler.postDelayed(this, ONE_SECOND)
+                if (thread == Thread.currentThread()) {
+                    setTime(currentSeconds.incrementAndGet())
+                    Thread.sleep(ONE_SECOND)
+                    this.run()
+                } else {
+                    setTime(0)
+                }
             }
 
         }
 
         startButton.setOnClickListener {
-            if (running) return@setOnClickListener
-            Thread(tickTimer).start()
-            handler.postDelayed(tickTimer, ONE_SECOND)
+            if (thread != null) return@setOnClickListener
+            val myThread = Thread(tickTimer)
+            myThread.start()
+            thread = myThread
             settingsButton.isEnabled = false
-            running = true
             progressBar.visibility = View.VISIBLE
         }
         resetButton.setOnClickListener {
-            running = false
-            progressBar.visibility = View.INVISIBLE
-            settingsButton.isEnabled = true
-            handler.removeCallbacks(tickTimer)
-            setTime(0)
+            if (thread != null) {
+                thread = null
+                progressBar.visibility = View.INVISIBLE
+                settingsButton.isEnabled = true
+            }
+
         }
     }
 
     override fun onStop() {
         super.onStop()
-        handler.removeCallbacks(tickTimer)
+        thread = null
     }
 }
