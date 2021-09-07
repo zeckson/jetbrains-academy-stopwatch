@@ -5,6 +5,9 @@
 # Build files
 build
 
+# Local configuration file (sdk path, etc)
+local.properties
+
 # External files
 *.yaml
 *.patch
